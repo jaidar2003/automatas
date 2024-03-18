@@ -1,5 +1,7 @@
-# Automatas y Gramaticas 2024
 
-# Ingenieria en Informatica 
-# Franco Dino Meschini
-# Juan Manuel AIdar
+# Universidad de Mendoza
+# Ingenieria en Informatica  
+# Automatas y Gramaticas 
+ 
+Franco Dino Meschini
+Juan Manuel Aidar
