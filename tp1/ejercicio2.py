@@ -27,7 +27,8 @@ for i in range(1, 4):  # Suponiendo una longitud máxima de 3 para la cadena
     for subset in itertools.product(temp, repeat=i):
         cerradura_kleene_interseccion_AB.append(''.join(subset))
 
-# Mostrar resultados
+# Resultados
+
 # Unión de A y B
 print("Unión de A y B:", union_AB)
 
