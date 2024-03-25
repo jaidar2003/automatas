@@ -4,5 +4,5 @@
 ### Automatas y Gramaticas
 
 Franco Dino Meschini
-
+Sofia Soler
 Juan Manuel Aidar
