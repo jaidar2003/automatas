@@ -1,8 +1,9 @@
 class AutomataNumero:
+
     def __init__(self):
         self.tabla = [
-            [2, 1, 1, '', '', ''],
-            [2, '', '', '', '', ''],
+            [2, 1, 1, None, None, None],
+            [2, None, None, None, None, None],
             ['acepta', 'acepta', 'acepta', 'acepta', 'acepta', 'acepta']
         ]
         self.estado_actual = 0
@@ -21,7 +22,13 @@ class AutomataNumero:
         else:
             columna = 5
 
-        self.estado_actual = self.tabla[self.estado_actual][columna]
+        try:
+            self.estado_actual = self.tabla[self.estado_actual][columna]
+            if self.estado_actual == 'acepta':
+                return  # No need to proceed if the final state is reached
+        except (IndexError, TypeError):
+            print(f"Entrada no válida: {entrada}")
+            self.estado_actual = None
 
     def es_aceptado(self):
         return self.estado_actual == 'acepta'
@@ -31,8 +38,8 @@ def reconocer_numero(cadena):
     automata = AutomataNumero()
     for caracter in cadena:
         automata.transicion(caracter)
-        if automata.estado_actual == '':
-            return False
+        if automata.estado_actual is None:
+            return False  # If at any point the state becomes None, return False
     return automata.es_aceptado()
 
 
