@@ -50,3 +50,6 @@ for numero in numeros:
         print(f"'{numero}' es un número válido.")
     else:
         print(f"'{numero}' no es un número válido.")
+
+
+#jma
