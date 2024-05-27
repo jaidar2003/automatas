@@ -70,15 +70,14 @@ def evaluate(expression):
 
     def parse_expression(expression):
         tokens = re.findall(r'\d+|\+|\-|\%|\(|\)', expression)
-        # Convert numbers to 'id'
-        return ['id' if token.isdigit() else token for token in tokens]
+        return tokens
 
     def infix_to_postfix(tokens):
         output = []
         stack = []
         for token in tokens:
-            if token == 'id':
-                output.append(int(tokens.pop(0)))  # pop the actual number from the tokens
+            if token.isdigit():
+                output.append(int(token))
             elif token == '(':
                 stack.append(token)
             elif token == ')':
@@ -111,7 +110,7 @@ def evaluate(expression):
 
 if __name__ == "__main__":
     expr = "10+5-2"
-    tokens = evaluate(expr)
+    tokens = parse_expression(expr)
     if parse(tokens):
         result = evaluate(expr)
         print(f"The result of the expression '{expr}' is: {result}")
