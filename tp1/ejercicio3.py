@@ -39,11 +39,10 @@ def reconocer_numero(cadena):
     for caracter in cadena:
         automata.transicion(caracter)
         if automata.estado_actual is None:
-            return False  # If at any point the state becomes None, return False
+            return False  
     return automata.es_aceptado()
 
 
-# Ejemplo de uso
 numeros = ["123", "+123", "-123", "12.34", "+12.34", "-12.34", "1.2e3", "+1.2e3", "-1.2e3"]
 for numero in numeros:
     if reconocer_numero(numero):
