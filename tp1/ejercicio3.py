@@ -25,7 +25,7 @@ class AutomataNumero:
         try:
             self.estado_actual = self.tabla[self.estado_actual][columna]
             if self.estado_actual == 'acepta':
-                return  # No need to proceed if the final state is reached
+                return  
         except (IndexError, TypeError):
             print(f"Entrada no válida: {entrada}")
             self.estado_actual = None
