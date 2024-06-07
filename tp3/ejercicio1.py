@@ -1,8 +1,46 @@
+def obtener_col(simbolo_entrada):
+    if simbolo_entrada == 'i':
+        return 0
+    elif simbolo_entrada == '+':
+        return 1
+    elif simbolo_entrada == '-':
+        return 2
+    elif simbolo_entrada == '%':
+        return 3
+    elif simbolo_entrada == '(':
+        return 4
+    elif simbolo_entrada == ')':
+        return 5
+    elif simbolo_entrada == '$':
+        return 6
+    else:
+        return 7
+
+
+def obtener_fila(no_terminal):
+    if (no_terminal == "E"):
+        return 0
+    else:
+        if (no_terminal == "E!"):
+            return 1
+        else:
+            if (no_terminal == "T"):
+                return 2
+            else:
+                if (no_terminal == "T!"):
+                    return 3
+                else:
+                    if (no_terminal == "F"):
+                        return 4
+                    else:
+                        return 5
+
+
 class Pila:
     def __init__(self):
         self.items = []
 
-    def esta_vacia(self):
+    def estaVacia(self):
         return self.items == []
 
     def insertar(self, item):
@@ -21,154 +59,78 @@ class Pila:
         return self.items
 
 
-def obtener_col(simbolo_entrada):
-    if simbolo_entrada == 'id':
-        return 0
-    elif simbolo_entrada == '+':
-        return 1
-    elif simbolo_entrada == '-':
-        return 2
-    elif simbolo_entrada == '%':
-        return 3
-    elif simbolo_entrada == '(':
-        return 4
-    elif simbolo_entrada == ')':
-        return 5
-    elif simbolo_entrada == '$':
-        return 6
-    else:
-        return -1
+def analisis_sintactico(expresion):
+    entrada = []
+    tabla = [
+        ["E->TE!", "", "", "", "E->TE!", "", ""],
+        ["", "E!->+TE!", "E'->-TE!", "", "", "E!->e", "E!->e"],
+        ["T->FT!", "", "", "", "T->FT!", "", ""],
+        ["", "T!->e", "T!->e", "T!->%FT!", "", "T!->e", "T!->e"],
+        ["F->i", "", "", "", "F->(E)", "", ""],
+    ]
 
+    for j in expresion:
+        if j == ' ':
+            pass
+        else:
+            entrada.append(j)
+    entrada.append('$')
+    for i in entrada:
+        if i.isdigit():
+            entrada[entrada.index(i)] = 'i'
 
-def obtener_fila(no_terminal):
-    if no_terminal == 'E':
-        return 0
-    elif no_terminal == "E'":
-        return 1
-    elif no_terminal == 'T':
-        return 2
-    elif no_terminal == 'F':
-        return 3
-    else:
-        return -1
-
-
-# Tabla de análisis sintáctico
-tabla = [
-    ["E→TE'", "", "", "", "E→TE'", "", ""],
-    ["", "E'→+TE'", "E'→-TE'", "E'→%TE'", "", "E'→ε", "E'→ε"],
-    ["T→F", "", "", "", "T→F", "", ""],
-    ["F→id", "", "", "", "F→(E)", "", ""]
-]
-
-
-def evaluar_expresion(expr):
-    def parse_term(index):
-        term, index = parse_factor(index)
-        while index < len(expr) and expr[index] in ['+', '-', '%']:
-            op = expr[index]
-            next_term, next_index = parse_factor(index + 1)
-            if op == '+':
-                term += next_term
-            elif op == '-':
-                term -= next_term
-            elif op == '%':
-                term %= next_term
-            index = next_index
-        return term, index
-
-    def parse_factor(index):
-        if expr[index].isdigit():
-            start_index = index
-            while index < len(expr) and expr[index].isdigit():
-                index += 1
-            return int(expr[start_index:index]), index
-        elif expr[index] == '(':
-            term, index = parse_term(index + 1)
-            if expr[index] == ')':
-                return term, index + 1
-        raise ValueError(f"Unexpected character {expr[index]} at index {index}")
-
-    result, _ = parse_term(0)
-    return result
-
-
-# Proceso de análisis
-def analizador_entrada(entrada):
     p = Pila()
     p.insertar('$')
     p.insertar('E')
+    iter = 0
+    entr = 0
+    flag = False
+    flag1 = False
 
-    entrada_2 = entrada + ['$']
-    salida = ''
+    while p.inspeccionar() != '$':
+        iter += 1
 
-    print('PILA \t\t\t\t ENTRADA \t\t\t\t SALIDA')
-    print(f"{str(p.contenido())}\t\t\t{str(entrada_2)}\t\t\t{str(salida)}")
+        if obtener_fila(p.inspeccionar()) != 5:
 
-    simbolo_entrada = entrada_2.pop(0)
-    while simbolo_entrada:
-        cima_pila = p.inspeccionar()
-        while cima_pila != simbolo_entrada:
-            col = obtener_col(simbolo_entrada)
-            fil = obtener_fila(cima_pila)
-            if col == -1 or fil == -1:
-                print("Error: Símbolo inesperado")
-                return False
+            print("Pila: ", p.contenido())
+            print("Entrada: ", entrada)
+            print("Salida: ", tabla[obtener_fila(p.inspeccionar())][obtener_col(entrada[0])])
+            print("--------------------------------------------------")
 
-            salida = tabla[fil][col]
-            if salida:
+            if p.inspeccionar() == "!":
+                flag1 = True
+                pass
+            if p.inspeccionar() != entrada[0]:
+                if flag1 == True:
+                    salida = tabla[obtener_fila(str(p.inspeccionar() + "!"))][obtener_col(entrada[0])]
+                    flag1 = False
+                else:
+                    salida = tabla[obtener_fila(p.inspeccionar())][obtener_col(entrada[0])]
                 p.extraer()
-                produccion = salida.split('→')[1]
-                produccion_pila = []
-                i = 0
-                while i < len(produccion):
-                    if i + 1 < len(produccion) and produccion[i + 1] == "'":
-                        produccion_pila.append(produccion[i:i + 2])
-                        i += 2
+                for ii in (salida[::-1]):
+                    if ii == ">":
+                        break
+                    elif flag == True:
+                        nuevo = str(ii + "!")
+                        if ii != "e":
+                            p.insertar(nuevo)
+                            flag = False
+                    elif ii == "!":
+                        flag = True
+                        pass
                     else:
-                        produccion_pila.append(produccion[i])
-                        i += 1
-                for simbolo in reversed(produccion_pila):
-                    if simbolo != 'ε':
-                        p.insertar(simbolo)
-            else:
-                print("Error: Producción vacía")
-                return False  # Error de sintaxis
-            print(f"{str(p.contenido())}\t\t\t{str(entrada_2)}\t\t\t{str(salida)}")
-            cima_pila = p.inspeccionar()
-
-        if simbolo_entrada == '$' and p.inspeccionar() == '$':
-            print("Árbol sintáctico construido!")
-            return True
-
-        p.extraer()
-        if entrada_2:
-            simbolo_entrada = entrada_2.pop(0)
+                        if ii != "e":
+                            p.insertar(ii)
         else:
-            simbolo_entrada = None
-
-        print(f"{str(p.contenido())}\t\t\t{str(entrada_2)}\t\t\t")
-
-    return False
+            p.extraer()
+            entr += 1
+            entrada.pop(0)
 
 
-# Ejemplo de uso
-input_str = "10+5-2"
-tokens = []
-i = 0
-while i < len(input_str):
-    if input_str[i].isdigit():
-        num = ""
-        while i < len(input_str) and input_str[i].isdigit():
-            num += input_str[i]
-            i += 1
-        tokens.append("id")
-    else:
-        tokens.append(input_str[i])
-        i += 1
+def calculadora(expresion):
+    print(f"El resultado de la expresión es = {eval(expresion)}")
+    pass
 
-if analizador_entrada(tokens):
-    result = evaluar_expresion(input_str)
-    print(f"Resultado: {result}")
-else:
-    print("Error de sintaxis")
+
+analisis_sintactico("6 + ( 5 % 2 ) - 3")
+calculadora("6  + ( 5 % 2 ) - 3")
