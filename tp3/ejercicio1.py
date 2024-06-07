@@ -2,7 +2,7 @@ class Pila:
     def __init__(self):
         self.items = []
 
-    def estaVacia(self):
+    def esta_vacia(self):
         return self.items == []
 
     def insertar(self, item):
@@ -37,139 +37,138 @@ def obtener_col(simbolo_entrada):
     elif simbolo_entrada == '$':
         return 6
     else:
-        return 7
+        return -1
 
 
 def obtener_fila(no_terminal):
     if no_terminal == 'E':
         return 0
-    elif no_terminal == 'E\'':
+    elif no_terminal == "E'":
         return 1
     elif no_terminal == 'T':
         return 2
     elif no_terminal == 'F':
         return 3
     else:
-        return 4
+        return -1
 
 
+# Tabla de análisis sintáctico
 tabla = [
-    ["TE'", "", "", "", "TE'", "", ""],
-    ["", "+TE'", "-TE'", "%TE'", "", "ε", "ε"],
-    ["F", "", "", "", "F", "", ""],
-    ["id", "", "", "", "(E)", "", ""]
+    ["E→TE'", "", "", "", "E→TE'", "", ""],
+    ["", "E'→+TE'", "E'→-TE'", "E'→%TE'", "", "E'→ε", "E'→ε"],
+    ["T→F", "", "", "", "T→F", "", ""],
+    ["F→id", "", "", "", "F→(E)", "", ""]
 ]
 
 
-def tokenizar(expresion):
-    tokens = []
-    i = 0
-    while i < len(expresion):
-        if expresion[i].isdigit():
-            num = ""
-            while i < len(expresion) and expresion[i].isdigit():
-                num += expresion[i]
-                i += 1
-            tokens.append('id')
-        elif expresion[i] in "+-%()":
-            tokens.append(expresion[i])
-            i += 1
-        else:
-            i += 1
-    tokens.append('$')
-    return tokens
+def evaluar_expresion(expr):
+    def parse_term(index):
+        term, index = parse_factor(index)
+        while index < len(expr) and expr[index] in ['+', '-', '%']:
+            op = expr[index]
+            next_term, next_index = parse_factor(index + 1)
+            if op == '+':
+                term += next_term
+            elif op == '-':
+                term -= next_term
+            elif op == '%':
+                term %= next_term
+            index = next_index
+        return term, index
+
+    def parse_factor(index):
+        if expr[index].isdigit():
+            start_index = index
+            while index < len(expr) and expr[index].isdigit():
+                index += 1
+            return int(expr[start_index:index]), index
+        elif expr[index] == '(':
+            term, index = parse_term(index + 1)
+            if expr[index] == ')':
+                return term, index + 1
+        raise ValueError(f"Unexpected character {expr[index]} at index {index}")
+
+    result, _ = parse_term(0)
+    return result
 
 
-def analizar_entrada(entrada):
+# Proceso de análisis
+def analizador_entrada(entrada):
     p = Pila()
     p.insertar('$')
     p.insertar('E')
-    idx = 0
-    while not p.estaVacia():
+
+    entrada_2 = entrada + ['$']
+    salida = ''
+
+    print('PILA \t\t\t\t ENTRADA \t\t\t\t SALIDA')
+    print(f"{str(p.contenido())}\t\t\t{str(entrada_2)}\t\t\t{str(salida)}")
+
+    simbolo_entrada = entrada_2.pop(0)
+    while simbolo_entrada:
         cima_pila = p.inspeccionar()
-        simbolo_entrada = entrada[idx]
-        if cima_pila in ['E', 'E\'', 'T', 'F']:
-            fila = obtener_fila(cima_pila)
+        while cima_pila != simbolo_entrada:
             col = obtener_col(simbolo_entrada)
-            produccion = tabla[fila][col]
-            if produccion != '':
+            fil = obtener_fila(cima_pila)
+            if col == -1 or fil == -1:
+                print("Error: Símbolo inesperado")
+                return False
+
+            salida = tabla[fil][col]
+            if salida:
                 p.extraer()
-                if produccion != 'ε':
-                    for simbolo in reversed(produccion):
+                produccion = salida.split('→')[1]
+                produccion_pila = []
+                i = 0
+                while i < len(produccion):
+                    if i + 1 < len(produccion) and produccion[i + 1] == "'":
+                        produccion_pila.append(produccion[i:i + 2])
+                        i += 2
+                    else:
+                        produccion_pila.append(produccion[i])
+                        i += 1
+                for simbolo in reversed(produccion_pila):
+                    if simbolo != 'ε':
                         p.insertar(simbolo)
             else:
-                print("Error en la entrada.")
-                return False
-        elif cima_pila == simbolo_entrada:
-            p.extraer()
-            idx += 1
+                print("Error: Producción vacía")
+                return False  # Error de sintaxis
+            print(f"{str(p.contenido())}\t\t\t{str(entrada_2)}\t\t\t{str(salida)}")
+            cima_pila = p.inspeccionar()
+
+        if simbolo_entrada == '$' and p.inspeccionar() == '$':
+            print("Árbol sintáctico construido!")
+            return True
+
+        p.extraer()
+        if entrada_2:
+            simbolo_entrada = entrada_2.pop(0)
         else:
-            print("Error en la entrada.")
-            return False
-    return True
+            simbolo_entrada = None
+
+        print(f"{str(p.contenido())}\t\t\t{str(entrada_2)}\t\t\t")
+
+    return False
 
 
-def evaluar_expresion(expresion):
-    def evaluar(tokens):
-        def siguiente():
-            return tokens.pop(0)
+# Ejemplo de uso
+input_str = "10+5-2"
+tokens = []
+i = 0
+while i < len(input_str):
+    if input_str[i].isdigit():
+        num = ""
+        while i < len(input_str) and input_str[i].isdigit():
+            num += input_str[i]
+            i += 1
+        tokens.append("id")
+    else:
+        tokens.append(input_str[i])
+        i += 1
 
-        def factor():
-            token = siguiente()
-            if token == '(':
-                resultado = expresion()
-                siguiente()  # consumir ')'
-                return resultado
-            else:  # es un número
-                return int(token)
-
-        def termino():
-            resultado = factor()
-            while tokens and tokens[0] == '%':
-                siguiente()  # consumir '%'
-                resultado = resultado % factor()
-            return resultado
-
-        def expresion():
-            resultado = termino()
-            while tokens and tokens[0] in ('+', '-'):
-                if tokens[0] == '+':
-                    siguiente()  # consumir '+'
-                    resultado += termino()
-                elif tokens[0] == '-':
-                    siguiente()  # consumir '-'
-                    resultado -= termino()
-            return resultado
-
-        return expresion()
-
-    tokens = []
-    num = ""
-    for char in expresion:
-        if char.isdigit():
-            num += char
-        else:
-            if num:
-                tokens.append(num)
-                num = ""
-            tokens.append(char)
-    if num:
-        tokens.append(num)
-
-    return evaluar(tokens)
-
-
-# Probar la calculadora
-expresion = "10+5-2"
-resultado = evaluar_expresion(expresion)
-print("Resultado:", resultado)  # Resultado: 13
-
-entrada = tokenizar(expresion)
-if analizar_entrada(entrada):
-    print("Entrada aceptada.")
+if analizador_entrada(tokens):
+    result = evaluar_expresion(input_str)
+    print(f"Resultado: {result}")
 else:
-    print("Error en la entrada.")
-
-# Evaluar la expresión
-resultado = evaluar_expresion(expresion)
-print("Resultado:", resultado)
+    print("Error de sintaxis")
