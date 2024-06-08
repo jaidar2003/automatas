@@ -1,118 +1,136 @@
-class Stack:
+def obtener_col(simbolo_entrada):
+    if simbolo_entrada == 'i':
+        return 0
+    elif simbolo_entrada == '+':
+        return 1
+    elif simbolo_entrada == '-':
+        return 2
+    elif simbolo_entrada == '%':
+        return 3
+    elif simbolo_entrada == '(':
+        return 4
+    elif simbolo_entrada == ')':
+        return 5
+    elif simbolo_entrada == '$':
+        return 6
+    else:
+        return 7
+
+
+def obtener_fila(no_terminal):
+    if (no_terminal == "E"):
+        return 0
+    else:
+        if (no_terminal == "E!"):
+            return 1
+        else:
+            if (no_terminal == "T"):
+                return 2
+            else:
+                if (no_terminal == "T!"):
+                    return 3
+                else:
+                    if (no_terminal == "F"):
+                        return 4
+                    else:
+                        return 5
+
+
+class Pila:
     def __init__(self):
         self.items = []
 
-    def is_empty(self):
-        return len(self.items) == 0
+    def estaVacia(self):
+        return self.items == []
 
-    def push(self, item):
+    def insertar(self, item):
         self.items.append(item)
 
-    def pop(self):
+    def extraer(self):
         return self.items.pop()
 
-    def top(self):
-        if not self.is_empty():
-            return self.items[-1]
-        return None
+    def inspeccionar(self):
+        return self.items[-1]
 
-    def __str__(self):
-        return str(self.items)
+    def tamano(self):
+        return len(self.items)
+
+    def contenido(self):
+        return self.items
 
 
-# Parsing Table
-table = {
-    ('E', 'id'): ['T', "E'"],
-    ('E', '('): ['T', "E'"],
-    ("E'", '+'): ['+', 'T', "E'"],
-    ("E'", '-'): ['-', 'T', "E'"],
-    ("E'", '%'): ['%', 'T', "E'"],
-    ("E'", ')'): ['ε'],
-    ("E'", '$'): ['ε'],
-    ('T', 'id'): ['id'],
-    ('T', '('): ['(', 'E', ')']
-}
+def analisis_sintactico(expresion):
+    entrada = []
+    tabla = [
+        ["E->TE!", "", "", "", "E->TE!", "", ""],
+        ["", "E!->+TE!", "E'->-TE!", "", "", "E!->e", "E!->e"],
+        ["T->FT!", "", "", "", "T->FT!", "", ""],
+        ["", "T!->e", "T!->e", "T!->%FT!", "", "T!->e", "T!->e"],
+        ["F->i", "", "", "", "F->(E)", "", ""],
+    ]
 
-def parse(input_tokens):
-    input_tokens.append('$')
-
-    stack = Stack()
-    stack.push('$')
-    stack.push('E')
-
-    index = 0
-    symbol = input_tokens[index]
-
-    while not stack.is_empty():
-        top = stack.top()
-        if top == symbol:
-            stack.pop()
-            index += 1
-            symbol = input_tokens[index]
-        elif (top, symbol) in table:
-            stack.pop()
-            production = table[(top, symbol)]
-            if production != ['ε']:
-                for item in reversed(production):
-                    stack.push(item)
+    for j in expresion:
+        if j == ' ':
+            pass
         else:
-            return False
-    return True
+            entrada.append(j)
+    entrada.append('$')
+    for i in entrada:
+        if i.isdigit():
+            entrada[entrada.index(i)] = 'i'
 
-# Calculate the result for a valid expression
-def evaluate(expression):
-    import operator
-    import re
+    p = Pila()
+    p.insertar('$')
+    p.insertar('E')
+    iter = 0
+    entr = 0
+    flag = False
+    flag1 = False
 
-    # Define operator precedence and corresponding operations
-    precedence = {'+': 1, '-': 1, '%': 2}
-    operators = {'+': operator.add, '-': operator.sub, '%': operator.mod}
+    while p.inspeccionar() != '$':
+        iter += 1
 
-    def parse_expression(expression):
-        tokens = re.findall(r'\d+|\+|\-|\%|\(|\)', expression)
-        # Convert numbers to 'id'
-        return ['id' if token.isdigit() else token for token in tokens]
+        if obtener_fila(p.inspeccionar()) != 5:
 
-    def infix_to_postfix(tokens):
-        output = []
-        stack = []
-        for token in tokens:
-            if token == 'id':
-                output.append(int(tokens.pop(0)))  # pop the actual number from the tokens
-            elif token == '(':
-                stack.append(token)
-            elif token == ')':
-                while stack and stack[-1] != '(':
-                    output.append(stack.pop())
-                stack.pop()
-            else:
-                while stack and stack[-1] in precedence and precedence[token] <= precedence[stack[-1]]:
-                    output.append(stack.pop())
-                stack.append(token)
-        while stack:
-            output.append(stack.pop())
-        return output
+            print("Pila: ", p.contenido())
+            print("Entrada: ", entrada)
+            print("Salida: ", tabla[obtener_fila(p.inspeccionar())][obtener_col(entrada[0])])
+            print("--------------------------------------------------")
 
-    def evaluate_postfix(postfix_tokens):
-        stack = []
-        for token in postfix_tokens:
-            if isinstance(token, int):
-                stack.append(token)
-            else:
-                b = stack.pop()
-                a = stack.pop()
-                stack.append(operators[token](a, b))
-        return stack[0]
+            if p.inspeccionar() == "!":
+                flag1 = True
+                pass
+            if p.inspeccionar() != entrada[0]:
+                if flag1 == True:
+                    salida = tabla[obtener_fila(str(p.inspeccionar() + "!"))][obtener_col(entrada[0])]
+                    flag1 = False
+                else:
+                    salida = tabla[obtener_fila(p.inspeccionar())][obtener_col(entrada[0])]
+                p.extraer()
+                for ii in (salida[::-1]):
+                    if ii == ">":
+                        break
+                    elif flag == True:
+                        nuevo = str(ii + "!")
+                        if ii != "e":
+                            p.insertar(nuevo)
+                            flag = False
+                    elif ii == "!":
+                        flag = True
+                        pass
+                    else:
+                        if ii != "e":
+                            p.insertar(ii)
+        else:
+            p.extraer()
+            entr += 1
+            entrada.pop(0)
 
-    tokens = parse_expression(expression)
-    postfix_tokens = infix_to_postfix(tokens)
-    return evaluate_postfix(postfix_tokens)
 
-if __name__ == "__main__":
-    expr = "10+5-2"
-    tokens = evaluate(expr)
-    if parse(tokens):
-        result = evaluate(expr)
-        print(f"The result of the expression '{expr}' is: {result}")
-    else:
-        print("Syntax Error: The expression is invalid.")
+def calculadora(expresion):
+    print(f"El resultado de la expresión es = {eval(expresion)}")
+    pass
+
+
+analisis_sintactico("6 + ( 5 % 2 ) - 3")
+calculadora("6  + ( 5 % 2 ) - 3")
