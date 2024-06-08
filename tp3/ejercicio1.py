@@ -131,6 +131,5 @@ def calculadora(expresion):
     print(f"El resultado de la expresión es = {eval(expresion)}")
     pass
 
-
 analisis_sintactico("6 + ( 5 % 2 ) - 3")
 calculadora("6  + ( 5 % 2 ) - 3")

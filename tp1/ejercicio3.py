@@ -51,4 +51,3 @@ for numero in numeros:
         print(f"'{numero}' no es un número válido.")
 
 
-#jma
