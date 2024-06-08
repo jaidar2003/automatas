@@ -108,7 +108,6 @@ def evaluate(expression):
     postfix_tokens = infix_to_postfix(tokens)
     return evaluate_postfix(postfix_tokens)
 
-
 if __name__ == "__main__":
     expr = "10+5-2"
     tokens = evaluate(expr)
