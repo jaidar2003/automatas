@@ -38,3 +38,4 @@ for pair in potencia_B2:
 print("Potencia de B (B0):", potencia_B0)
 
 print("Cerradura de Kleene de B (A ∩ B)*:", cerradura_kleene_interseccion_AB)
+
